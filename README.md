@@ -74,7 +74,7 @@ models = {
     rai_policy_name = "default"
   }
 }
-
+```
 ## Conclusion
 
 This Terraform project provides a robust and efficient way to deploy Azure OpenAI instances and multiple models. By automating the deployment process, it ensures that your AI models are deployed quickly and reliably, allowing you to focus on building and improving your applications.
