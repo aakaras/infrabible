@@ -182,5 +182,14 @@ variable "models" {
       scale_type     = "Standard"
       scale_capacity  = 1
     },
+
+    "gpt-35-turbo" = {
+      model_format    = "OpenAI"
+      model_name      = "gpt-35-turbo"
+      model_version   = "0125"
+      rai_policy_name = "Allow-All"  # Reference a key from content_filters
+      scale_type     = "Standard"
+      scale_capacity  = 1
+    },
   }
 }

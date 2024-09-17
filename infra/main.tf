@@ -8,6 +8,7 @@ terraform {
       source  = "Azure/azapi"
       version = "~> 1.0"
     }
+
   }
 }
 
@@ -27,7 +28,7 @@ resource "azurerm_resource_group" "rg" {
 
 # --- 2. Virtual Network (depends on resource group) ---
 resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-${var.resource_group_name}" 
+  name                = "vnet-${local.base_name}" 
   address_space       = var.vnet_address_space
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -36,7 +37,7 @@ resource "azurerm_virtual_network" "vnet" {
 
 # --- 3. Subnet (depends on virtual network) ---
 resource "azurerm_subnet" "subnet" {
-  name                 = "subnet-${var.resource_group_name}" 
+  name                 = "subnet-${local.base_name}" 
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.subnet_address_prefixes
@@ -44,7 +45,7 @@ resource "azurerm_subnet" "subnet" {
 
 # --- 4. Public IP (depends on resource group) ---
 resource "azurerm_public_ip" "public_ip" {
-  name                = "public-ip-${var.resource_group_name}"
+  name                = "public-ip-${local.base_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
@@ -55,7 +56,7 @@ resource "azurerm_public_ip" "public_ip" {
 # --- Resources without explicit dependencies (can run in parallel after RG) ---
 
 resource "azurerm_storage_account" "storage" {
-  name                     = format("%sx%s", replace(var.resource_group_name, "-", ""),"fileupload")
+  name                     = format("%sx%s", replace(local.base_name, "-", ""),"fileupload")
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = var.storage_account_tier
@@ -64,7 +65,7 @@ resource "azurerm_storage_account" "storage" {
 }
 
 resource "azurerm_automation_account" "automation" {
-  name                = "aa-${var.resource_group_name}"
+  name                = "aa-${local.base_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   sku_name            = var.automation_account_sku_name
@@ -72,7 +73,7 @@ resource "azurerm_automation_account" "automation" {
 }
 
 resource "azurerm_key_vault" "kv" {
-  name                = "kv-${var.resource_group_name}" 
+  name                = "kv-${local.base_name}-swd" 
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   sku_name            = var.key_vault_sku_name
@@ -81,7 +82,7 @@ resource "azurerm_key_vault" "kv" {
 }
 
 resource "azurerm_application_insights" "appinsights" {
-  name                = "${var.resource_group_name}-ak"
+  name                = "appi-${local.base_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   application_type    = "web"
@@ -97,18 +98,21 @@ resource "azurerm_dns_zone" "dnszone" {
 # --- Resources that depend on others ---
 
 resource "azurerm_app_service_plan" "asp" {
-  name                = "ASP-${var.resource_group_name}-8774"
+  name                = "ASP-${local.base_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   sku {
     tier = var.app_service_plan_sku_tier
     size = var.app_service_plan_sku_size
   }
+  timeouts { 
+    delete = "15m" # Adjust as needed based on observed deletion times 
+  }
   tags = local.common_tags
 }
 
 resource "azurerm_app_service" "appservice" {
-  name                = "${var.resource_group_name}-ak"
+  name                = "APP-${local.base_name}-swd"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   app_service_plan_id = azurerm_app_service_plan.asp.id # Depends on app service plan
@@ -119,7 +123,7 @@ resource "azurerm_app_service" "appservice" {
 }
 
 resource "azurerm_search_service" "search" {
-  name                = "${var.resource_group_name}search" # Using a naming convention
+  name                = "search-${local.base_name}" # Using a naming convention
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   sku                 = var.search_service_sku_name
@@ -129,7 +133,7 @@ resource "azurerm_search_service" "search" {
 }
 
 resource "azurerm_application_gateway" "appgw" {
-  name                = "appgw-${var.resource_group_name}"
+  name                = "appgw-${local.base_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   sku {
@@ -178,7 +182,7 @@ resource "azurerm_application_gateway" "appgw" {
 
 # --- Monitor Action Group (no explicit dependencies) ---
 resource "azurerm_monitor_action_group" "action_group" {
-  name                = "Application Insights Smart Detector"
+  name                = "AISD-${local.base_name}"
   resource_group_name = azurerm_resource_group.rg.name
   short_name          = "AISD"
   email_receiver {
@@ -189,29 +193,13 @@ resource "azurerm_monitor_action_group" "action_group" {
 }
 
 resource "azurerm_cognitive_account" "account" {
-  name                = "${var.resource_group_name}-azopai"
+  name                = "${local.base_name}-azoai"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   kind                = "OpenAI"
   sku_name            = "S0"
-  
+  #depends_on = [azapi_resource.content_filters]
 }
-
-/*resource "azurerm_cognitive_deployment" "this" {
-  name                 = "${var.resource_group_name}-cogacct"
-  cognitive_account_id = azurerm_cognitive_account.acogacct.id
-  rai_policy_name     = "Block-High"
-  model {
-    format  = "OpenAI"
-    name    = "gpt-4o-mini"
-    version = "2024-07-18"
-  }
-  scale {
-    type = "Standard"
-    capacity = 1
-  }
-  depends_on = [azapi_resource.content_filter]
-}*/
 
 
 resource "azapi_resource" "content_filters" {
@@ -224,6 +212,8 @@ resource "azapi_resource" "content_filters" {
   body = jsonencode({
   properties = each.value
   })
+  depends_on = [azurerm_cognitive_account.account]
+
 }
 
 resource "azurerm_cognitive_deployment" "deployments" {
@@ -248,5 +238,64 @@ resource "azurerm_cognitive_deployment" "deployments" {
     ]
   }
   # Ensure deployments are deleted before content filters to avoid dependency issues
-  depends_on = [azapi_resource.content_filters] 
+  #depends_on = [azapi_resource.content_filters] 
+}
+
+resource "azurerm_key_vault_access_policy" "access_policy" {
+  key_vault_id = azurerm_key_vault.kv.id
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore",
+    "Purge"
+  ]
+}
+
+resource "azurerm_key_vault_secret" "cognitive_endpoint" {
+  name         = "AZURE-OPENAI-ENDPOINT" # Choose a descriptive name
+  value        = azurerm_cognitive_account.account.endpoint
+  key_vault_id = azurerm_key_vault.kv.id
+
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.access_policy
+  ]
+}
+
+resource "azurerm_key_vault_secret" "cognitive_api_key" {
+  name         = "AZURE-OPENAI-KEY" # Choose a descriptive name
+  value        = azurerm_cognitive_account.account.primary_access_key
+  key_vault_id = azurerm_key_vault.kv.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.access_policy
+  ]
+}
+
+resource "azurerm_key_vault_secret" "search_key" {
+  name         = "SEARCH-KEY" # Choose a descriptive name
+  value        = azurerm_search_service.search.primary_key
+  key_vault_id = azurerm_key_vault.kv.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.access_policy
+  ]
+}
+
+resource "azurerm_key_vault_secret" "search_url" {
+  name         = "AZURE-SEARCH-ENDPOINT" # Choose a descriptive name
+  value        = "https://search-${local.base_name}.search.windows.net"
+  key_vault_id = azurerm_key_vault.kv.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.access_policy
+  ]
 }
