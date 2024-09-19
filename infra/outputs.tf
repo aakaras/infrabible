@@ -1,3 +1,4 @@
+# output.tf
 output "resource_group_name" {
   value = azurerm_resource_group.rg.name
 }
@@ -9,7 +10,6 @@ output "app_service_url" {
 output "azurerm_storage_account" {
   value = azurerm_storage_account.storage.name
 }
-
 
 output "cognitive_account_endpoint" {
   value = azurerm_cognitive_account.account.endpoint
@@ -25,8 +25,12 @@ output "search_api_key" {
   sensitive = true
 }
 
-// Output search endpoint
 output "search_endpoint" {
   description = "URL of the Search Service."
   value       = "https://search-${local.base_name}.search.windows.net"
+}
+
+output "search_index" {
+  description = "Search index name."
+  value       = local.search_index_json.name
 }

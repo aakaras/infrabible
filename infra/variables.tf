@@ -1,122 +1,105 @@
+# variables.tf
 variable "resource_group_name" {
-  type = string
+  type        = string
   description = "Name of the resource group"
 }
 
 variable "location" {
-  type = string
+  type        = string
   description = "Azure region to deploy resources"
-  default = "East US"
+  default     = "East US"
 }
 
 variable "vnet_address_space" {
-  type = list(string)
+  type        = list(string)
   description = "Address space for the virtual network"
-  default = ["10.0.0.0/16"]
+  default     = ["10.0.0.0/16"]
 }
 
 variable "subnet_address_prefixes" {
-  type = list(string)
+  type        = list(string)
   description = "Address prefixes for the subnet"
-  default = ["10.0.1.0/24"]
+  default     = ["10.0.1.0/24"]
 }
 
 variable "app_service_plan_sku_tier" {
-  type = string
+  type        = string
   description = "Tier for the app service plan"
-  default = "Standard"
+  default     = "Standard"
 }
 
 variable "app_service_plan_sku_size" {
-  type = string
+  type        = string
   description = "Size for the app service plan"
-  default = "S1"
+  default     = "S1"
 }
 
 variable "storage_account_replication_type" {
-  type = string
+  type        = string
   description = "Replication type for the storage account"
-  default = "LRS"
+  default     = "LRS"
 }
 
 variable "storage_account_tier" {
-  type = string
+  type        = string
   description = "Tier for the storage account"
-  default = "Standard"
+  default     = "Standard"
 }
 
 variable "automation_account_sku_name" {
-  type = string
+  type        = string
   description = "SKU name for the automation account"
-  default = "Basic"
+  default     = "Basic"
 }
 
 variable "key_vault_sku_name" {
-  type = string
+  type        = string
   description = "SKU name for the key vault"
-  default = "standard"
+  default     = "standard"
 }
 
 variable "search_service_sku_name" {
-  type = string
+  type        = string
   description = "SKU name for the search service"
-  default = "standard"
+  default     = "standard"
 }
 
 variable "search_service_sku_capacity" {
-  type = number
+  type        = number
   description = "Capacity for the search service"
-  default = 1
-}
-
-variable "managed_rule_set_type" {
-  type = string
-  description = "Type of the managed rule set"
-  default = "OWASP"
-}
-
-variable "managed_rule_set_version" {
-  type = string
-  description = "Version of the managed rule set"
-  default = "3.2"
+  default     = 1
 }
 
 variable "email_address" {
-  type = string
+  type        = string
   description = "Email address for notifications"
 }
 
-//variable "runbook1_uri" {
-//  type = string
-//  description = "URI for the first runbook content"
-//}
-
+variable "sample_file_path" {
+  type = string
+}
 
 variable "search_service_partition_count" {
-
   description = "The number of partitions for the Azure Search Service."
-
   type        = number
-
   default     = 1
-
 }
 
 variable "content_filters" {
   type = map(object({
-    mode           = string
-    basePolicyName = string
-    type           = string
-    contentFilters = list(object({
-      name                = string
-      blocking            = bool
-      enabled             = bool
-      allowedContentLevel = string
-      source              = string
-    }))
+ mode           = string
+ basePolicyName = string
+ type           = string
+ contentFilters = list(object({
+   name                = string
+   blocking            = bool
+   enabled             = bool
+   allowedContentLevel = string
+   source              = string
+ }))
   }))
   default = {
- "Block-High" = { 
+ "Block-High" = {
    mode           = "Default"
    basePolicyName = "Microsoft.Default"
    type           = "UserManaged"
@@ -131,7 +114,7 @@ variable "content_filters" {
      { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" }
    ]
  },
- "Block-Medium" = { 
+ "Block-Medium" = {
    mode           = "Default"
    basePolicyName = "Microsoft.Default"
    type           = "UserManaged"
@@ -146,50 +129,49 @@ variable "content_filters" {
      { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" }
    ]
  },
-    "Allow-All" = {
-      mode           = "Default" 
-      basePolicyName = "Microsoft.Default" 
-      type           = "UserManaged"
-      contentFilters = [] # Empty list to effectively allow all content
-    }
+ "Allow-All" = {
+   mode           = "Default"
+   basePolicyName = "Microsoft.Default"
+   type           = "UserManaged"
+   contentFilters = []
+ }
   }
 }
 
 variable "models" {
   type = map(object({
-    model_format       = string
-    model_name         = string
-    model_version      = string
-    rai_policy_name    = string # To associate with a content filter
-    scale_type        = string
-    scale_capacity     = number 
+ model_format    = string
+ model_name      = string
+ model_version   = string
+ rai_policy_name = string
+ scale_type      = string
+ scale_capacity  = number
   }))
   default = {
-    "gpt-4o-mini-deployment" = {
-      model_format    = "OpenAI"
-      model_name      = "gpt-4o-mini"
-      model_version   = "2024-07-18"
-      rai_policy_name = "Block-High"  # Reference a key from content_filters
-      scale_type     = "Standard"
-      scale_capacity  = 1
-    },
-    # ... (Add more models here)
-    "Dall-e-3" = {
-      model_format    = "OpenAI"
-      model_name      = "dall-e-3"
-      model_version   = "3.0"
-      rai_policy_name = "Allow-All"  # Reference a key from content_filters
-      scale_type     = "Standard"
-      scale_capacity  = 1
-    },
+ "gpt-4o-mini-deployment" = {
+   model_format    = "OpenAI"
+   model_name      = "gpt-4o-mini"
+   model_version   = "2024-07-18"
+   rai_policy_name = "Block-High"
+   scale_type      = "Standard"
+   scale_capacity  = 100
 
-    "gpt-35-turbo" = {
-      model_format    = "OpenAI"
-      model_name      = "gpt-35-turbo"
-      model_version   = "0125"
-      rai_policy_name = "Allow-All"  # Reference a key from content_filters
-      scale_type     = "Standard"
-      scale_capacity  = 1
-    },
+ },
+ "Dall-e-3" = {
+   model_format    = "OpenAI"
+   model_name      = "dall-e-3"
+   model_version   = "3.0"
+   rai_policy_name = "Allow-All"
+   scale_type      = "Standard"
+   scale_capacity  = 1
+ },
+ "gpt-35-turbo" = {
+   model_format    = "OpenAI"
+   model_name      = "gpt-35-turbo"
+   model_version   = "0125"
+   rai_policy_name = "Allow-All"
+   scale_type      = "Standard"
+   scale_capacity  = 30
+ },
   }
 }

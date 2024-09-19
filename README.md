@@ -14,6 +14,7 @@ This Terraform project automates the deployment of Azure OpenAI instances and mu
 ### 1. Cognitive Deployment
 
 The `azurerm_cognitive_deployment` resource is used to deploy AI models. It includes the following attributes:
+
 - **name**: The name of the deployment.
 - **cognitive_account_id**: The ID of the Azure Cognitive Account.
 - **rai_policy_name**: The Responsible AI policy name associated with the deployment.
@@ -25,6 +26,7 @@ The `azurerm_cognitive_deployment` resource is used to deploy AI models. It incl
 ### 2. Null Resource for Retry Mechanism
 
 A `null_resource` is used to implement a retry mechanism for handling deployment conflicts:
+
 - **provisioner "local-exec"**: Executes a shell script to retry the deployment in case of conflicts.
 - **triggers**: Ensures the retry mechanism runs every time.
 
@@ -36,13 +38,13 @@ A `null_resource` is used to implement a retry mechanism for handling deployment
 
 1. **Define Variables**: Ensure you have the necessary variables defined in your `terraform.tfvars` file or through other means.
 2. **Initialize Terraform**: Run the following command to initialize Terraform:
-    ```sh
-    terraform init
-    ```
+   ```sh
+   terraform init
+   ```
 3. **Apply Configuration**: Apply the Terraform configuration to deploy the resources:
-    ```sh
-    terraform apply -auto-approve
-    ```
+   ```sh
+   terraform apply -auto-approve
+   ```
 
 ## Benefits
 
@@ -75,6 +77,7 @@ models = {
   }
 }
 ```
+
 ## Conclusion
 
 This Terraform project provides a robust and efficient way to deploy Azure OpenAI instances and multiple models. By automating the deployment process, it ensures that your AI models are deployed quickly and reliably, allowing you to focus on building and improving your applications.
