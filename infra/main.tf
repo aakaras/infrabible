@@ -20,7 +20,7 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id = "2efb2f54-5852-4631-8dcf-111f41648a1c"
+  subscription_id = "c497cb1e-2593-4dae-80c5-741dc77a064b"
 }
 
 # Data Sources
@@ -32,47 +32,9 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
   tags     = local.common_tags
 }
-
-# Virtual Network
-resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-${local.base_name}"
-  address_space       = var.vnet_address_space
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  tags                = local.common_tags
-
-
-}
-
-# Subnets
-resource "azurerm_subnet" "appgw_subnet" {
-  name                 = "appgw-subnet-${local.base_name}"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_subnet" "appservice_subnet" {
-  name                 = "appservice-subnet-${local.base_name}"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.KeyVault"]
-}
-
-# Public IP Address
-resource "azurerm_public_ip" "public_ip" {
-  name                = "public-ip-${local.base_name}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  tags                = local.common_tags
-}
-
 # Storage Account
 resource "azurerm_storage_account" "storage" {
-  name                     = format("%s%s", replace(local.base_name, "-", ""), "files")
+  name                     = format("%sx%s", replace(local.base_name, "-", ""), "files")
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = var.storage_account_tier
@@ -87,30 +49,15 @@ resource "azurerm_storage_container" "search_container" {
   container_access_type = "private"
 }
 
-# Automation Account
-resource "azurerm_automation_account" "automation" {
-  name                = "aa-${local.base_name}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  sku_name            = var.automation_account_sku_name
-  tags                = local.common_tags
-}
-
 # Key Vault with Network Restrictions
 resource "azurerm_key_vault" "kv" {
-  name                = "kv-${local.base_name}-swd"
+  name                = "kv-${local.base_name}-ia"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   sku_name            = var.key_vault_sku_name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   tags                = local.common_tags
 
-  network_acls {
-    default_action             = "Deny"
-    bypass                     = "AzureServices"
-    virtual_network_subnet_ids = [azurerm_subnet.appservice_subnet.id]
-    ip_rules                   = ["201.11.32.93"]
-  }
 }
 
 # Application Insights
@@ -119,13 +66,6 @@ resource "azurerm_application_insights" "appinsights" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   application_type    = "web"
-  tags                = local.common_tags
-}
-
-# DNS Zone
-resource "azurerm_dns_zone" "dnszone" {
-  name                = "genaidemo.tech"
-  resource_group_name = azurerm_resource_group.rg.name
   tags                = local.common_tags
 }
 
@@ -147,7 +87,7 @@ resource "azurerm_app_service_plan" "asp" {
 
 # App Service with Network Configuration
 resource "azurerm_app_service" "appservice" {
-  name                = "APP-${local.base_name}-swd"
+  name                = "${local.base_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   app_service_plan_id = azurerm_app_service_plan.asp.id
@@ -160,17 +100,6 @@ resource "azurerm_app_service" "appservice" {
     type = "SystemAssigned"
   }
 
-  # Correct configuration for site_config 
-  site_config {
-    # VNet Integration configuration (replace placeholders)
-    ip_restriction {
-      name                      = "vnet-integration"
-      virtual_network_subnet_id = azurerm_subnet.appservice_subnet.id
-      priority                  = 100 # Adjust priority as needed
-      action                    = "Allow"
-    }
-
-  }
 }
 
 # Azure Search Service
@@ -178,7 +107,7 @@ resource "azurerm_search_service" "search" {
   name                = "search-${local.base_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  sku                 = var.search_service_sku_name
+  sku                 = "free"
   replica_count       = var.search_service_sku_capacity
   partition_count     = var.search_service_partition_count
   tags                = local.common_tags
@@ -233,84 +162,11 @@ resource "restapi_object" "search_indexer" {
 
 # Upload File to Blob Storage
 resource "azurerm_storage_blob" "sample_file" {
-  name                   = "AlisonKaras.pdf"
+  name                   = "Biblia.pdf"
   storage_account_name   = azurerm_storage_account.storage.name
   storage_container_name = azurerm_storage_container.search_container.name
   type                   = "Block"
   source                 = var.sample_file_path
-}
-
-# Application Gateway Configuration
-resource "azurerm_application_gateway" "appgw" {
-  name                = "appgw-${local.base_name}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 2
-  }
-
-  gateway_ip_configuration {
-    name      = "appgwIpConfig"
-    subnet_id = azurerm_subnet.appgw_subnet.id
-  }
-
-  frontend_ip_configuration {
-    name                 = "appgwFrontendIp"
-    public_ip_address_id = azurerm_public_ip.public_ip.id
-  }
-
-  frontend_port {
-    name = "frontendPort"
-    port = 80
-  }
-
-  backend_address_pool {
-    name  = "backendPool"
-    fqdns = [azurerm_app_service.appservice.default_site_hostname] # Use FQDN 
-  }
-
-  backend_http_settings {
-    name                  = "httpSettings"
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 20
-
-
-  }
-
-  http_listener {
-    name                           = "httpListener"
-    frontend_ip_configuration_name = "appgwFrontendIp"
-    frontend_port_name             = "frontendPort"
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = "routingRule"
-    rule_type                  = "Basic"
-    http_listener_name         = "httpListener"
-    backend_address_pool_name  = "backendPool"
-    backend_http_settings_name = "httpSettings"
-    priority                   = 100
-  }
-
-  tags = local.common_tags
-}
-
-
-# Monitor Action Group
-resource "azurerm_monitor_action_group" "action_group" {
-  name                = "AISD-${local.base_name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  short_name          = "AISD"
-  email_receiver {
-    name          = "default"
-    email_address = var.email_address
-  }
-  tags = local.common_tags
 }
 
 # Cognitive Account

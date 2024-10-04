@@ -1,4 +1,4 @@
-resource_group_name = "rg-genai-demo"
-location            = "East US"
-email_address       = "alison.karas@br.bosch.com"
-sample_file_path    = "../files/Profile_AK.pdf"
+resource_group_name = "rg-bibl-ia"
+location            = "East US2"
+email_address       = "alisonkaras@hotmail.com"
+sample_file_path    = "../files/biblia-sagrada.pdf"

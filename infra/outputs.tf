@@ -27,7 +27,7 @@ output "search_api_key" {
 
 output "search_endpoint" {
   description = "URL of the Search Service."
-  value       = "https://search-${local.base_name}.search.windows.net"
+  value       = "https://search-${var.resource_group_name}.search.windows.net"
 }
 
 output "search_index" {

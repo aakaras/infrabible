@@ -9,7 +9,7 @@ variable "location" {
   description = "Azure region to deploy resources"
   default     = "East US"
 }
-
+/*
 variable "vnet_address_space" {
   type        = list(string)
   description = "Address space for the virtual network"
@@ -21,17 +21,17 @@ variable "subnet_address_prefixes" {
   description = "Address prefixes for the subnet"
   default     = ["10.0.1.0/24"]
 }
-
+*/
 variable "app_service_plan_sku_tier" {
   type        = string
   description = "Tier for the app service plan"
-  default     = "Standard"
+  default     = "free"
 }
 
 variable "app_service_plan_sku_size" {
   type        = string
   description = "Size for the app service plan"
-  default     = "S1"
+  default     = "F1"
 }
 
 variable "storage_account_replication_type" {
@@ -45,13 +45,13 @@ variable "storage_account_tier" {
   description = "Tier for the storage account"
   default     = "Standard"
 }
-
+/*
 variable "automation_account_sku_name" {
   type        = string
   description = "SKU name for the automation account"
   default     = "Basic"
 }
-
+*/
 variable "key_vault_sku_name" {
   type        = string
   description = "SKU name for the key vault"
@@ -61,7 +61,7 @@ variable "key_vault_sku_name" {
 variable "search_service_sku_name" {
   type        = string
   description = "SKU name for the search service"
-  default     = "standard"
+  default     = "free"
 }
 
 variable "search_service_sku_capacity" {
@@ -87,91 +87,91 @@ variable "search_service_partition_count" {
 
 variable "content_filters" {
   type = map(object({
- mode           = string
- basePolicyName = string
- type           = string
- contentFilters = list(object({
-   name                = string
-   blocking            = bool
-   enabled             = bool
-   allowedContentLevel = string
-   source              = string
- }))
+    mode           = string
+    basePolicyName = string
+    type           = string
+    contentFilters = list(object({
+      name                = string
+      blocking            = bool
+      enabled             = bool
+      allowedContentLevel = string
+      source              = string
+    }))
   }))
   default = {
- "Block-High" = {
-   mode           = "Default"
-   basePolicyName = "Microsoft.Default"
-   type           = "UserManaged"
-   contentFilters = [
-     { name = "Hate", blocking = true, enabled = true, allowedContentLevel = "High", source = "Prompt" },
-     { name = "Sexual", blocking = true, enabled = true, allowedContentLevel = "High", source = "Prompt" },
-     { name = "selfharm", blocking = true, enabled = true, allowedContentLevel = "High", source = "Prompt" },
-     { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "High", source = "Prompt" },
-     { name = "Hate", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" },
-     { name = "Sexual", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" },
-     { name = "selfharm", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" },
-     { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" }
-   ]
- },
- "Block-Medium" = {
-   mode           = "Default"
-   basePolicyName = "Microsoft.Default"
-   type           = "UserManaged"
-   contentFilters = [
-     { name = "Hate", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Prompt" },
-     { name = "Sexual", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Prompt" },
-     { name = "selfharm", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Prompt" },
-     { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Prompt" },
-     { name = "Hate", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" },
-     { name = "Sexual", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" },
-     { name = "selfharm", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" },
-     { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" }
-   ]
- },
- "Allow-All" = {
-   mode           = "Default"
-   basePolicyName = "Microsoft.Default"
-   type           = "UserManaged"
-   contentFilters = []
- }
+    "Block-High" = {
+      mode           = "Default"
+      basePolicyName = "Microsoft.Default"
+      type           = "UserManaged"
+      contentFilters = [
+        { name = "Hate", blocking = true, enabled = true, allowedContentLevel = "High", source = "Prompt" },
+        { name = "Sexual", blocking = true, enabled = true, allowedContentLevel = "High", source = "Prompt" },
+        { name = "selfharm", blocking = true, enabled = true, allowedContentLevel = "High", source = "Prompt" },
+        { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "High", source = "Prompt" },
+        { name = "Hate", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" },
+        { name = "Sexual", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" },
+        { name = "selfharm", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" },
+        { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "High", source = "Completion" }
+      ]
+    },
+    "Block-Medium" = {
+      mode           = "Default"
+      basePolicyName = "Microsoft.Default"
+      type           = "UserManaged"
+      contentFilters = [
+        { name = "Hate", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Prompt" },
+        { name = "Sexual", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Prompt" },
+        { name = "selfharm", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Prompt" },
+        { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Prompt" },
+        { name = "Hate", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" },
+        { name = "Sexual", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" },
+        { name = "selfharm", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" },
+        { name = "Violence", blocking = true, enabled = true, allowedContentLevel = "Medium", source = "Completion" }
+      ]
+    },
+    "Allow-All" = {
+      mode           = "Default"
+      basePolicyName = "Microsoft.Default"
+      type           = "UserManaged"
+      contentFilters = []
+    }
   }
 }
 
 variable "models" {
   type = map(object({
- model_format    = string
- model_name      = string
- model_version   = string
- rai_policy_name = string
- scale_type      = string
- scale_capacity  = number
+    model_format    = string
+    model_name      = string
+    model_version   = string
+    rai_policy_name = string
+    scale_type      = string
+    scale_capacity  = number
   }))
   default = {
- "gpt-4o-mini-deployment" = {
-   model_format    = "OpenAI"
-   model_name      = "gpt-4o-mini"
-   model_version   = "2024-07-18"
-   rai_policy_name = "Block-High"
-   scale_type      = "Standard"
-   scale_capacity  = 100
+    "gpt-4o-mini-deployment" = {
+      model_format    = "OpenAI"
+      model_name      = "gpt-4o-mini"
+      model_version   = "2024-07-18"
+      rai_policy_name = "Block-High"
+      scale_type      = "Standard"
+      scale_capacity  = 8
 
- },
- "Dall-e-3" = {
+    },
+    /* "Dall-e-3" = {
    model_format    = "OpenAI"
    model_name      = "dall-e-3"
    model_version   = "3.0"
    rai_policy_name = "Allow-All"
    scale_type      = "Standard"
    scale_capacity  = 1
- },
- "gpt-35-turbo" = {
-   model_format    = "OpenAI"
-   model_name      = "gpt-35-turbo"
-   model_version   = "0125"
-   rai_policy_name = "Allow-All"
-   scale_type      = "Standard"
-   scale_capacity  = 30
- },
+ },*/
+    "gpt-35-turbo" = {
+      model_format    = "OpenAI"
+      model_name      = "gpt-35-turbo"
+      model_version   = "0125"
+      rai_policy_name = "Allow-All"
+      scale_type      = "Standard"
+      scale_capacity  = 30
+    },
   }
 }
